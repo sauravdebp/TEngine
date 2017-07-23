@@ -1,0 +1,46 @@
+.employees-list
+{
+    width: 600px;
+    /*margin: auto;*/
+    border: 1px solid gray;
+}
+
+.employee
+{
+    border-bottom: 1px solid gray;
+    padding: 0px 10px;
+}
+
+.employee:last-child
+{
+    border-bottom: 0px;
+}
+
+.employee-info
+{
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+}
+
+.header
+{
+
+width: 40%;
+
+border-right: 1px solid gray;
+}
+
+.value
+{
+}
+
+.dependant-value::after
+{
+    content: ', '
+}
+
+.dependant-value:last-child::after
+{
+    content: ''
+}
