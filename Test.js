@@ -70,7 +70,7 @@ function Test1() {
     dm.Employees(newRanking);
     dm.WinningEmployee(data.Employees[0]);
 
-    setTimeout(Test1, 10);
+    setTimeout(Test1, 3000);
 }
 
 // Test1();

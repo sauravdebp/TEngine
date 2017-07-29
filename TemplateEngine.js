@@ -85,22 +85,52 @@ var TEngine = function () {
                 dataModel[dmKey]()["TEngineBindingContext"] = nextContextElem;
                 bindDataModel(dataModel[dmKey](), nextContextElem);
             } else {
-                bindValueToElems(nextContextElem, dataModel[dmKey]());
+                bindValueToElems(nextContextElem, dataModel[dmKey](), dataModel[dmKey]);
             }
         }
     }
 
-    function bindValueToElems(elems, value) {
+    function bindValueToElems(elems, value, dataModelAccessor) {
         for (var i = 0; i < $(elems).length; i++) {
             var elem = $(elems)[i];
             var outerHTML = $(elem).prop("outerHTML");
+            var templateHTML = $(elem).prop("outerHTML");
+
+            if (elem.TEngineElementTemplate != undefined)
+                outerHTML = $(elem.TEngineElementTemplate).prop("outerHTML");
 
             if (outerHTML.indexOf("{binding-path") == -1) {
                 $(elem).text(value);
             } else {
                 outerHTML = outerHTML.split("{binding-path}").join(value);
-                $(elem).prop("outerHTML", outerHTML);
+                var elemParent = $(elem).parent();
+                $(elem).prop("outerHTML", $(outerHTML).attr("uniqueTempId", i).prop("outerHTML"));
+                var tEngineDmObjCopy = elem.TEngineDMObject;
+                elem = $("[uniqueTempId='" + i + "']", elemParent)[0];
+                elem.TEngineDMObject = tEngineDmObjCopy;
+                $(elem).removeAttr("uniqueTempId");
             }
+
+            if (elem.TEngineElementTemplate == undefined) {
+                elem.TEngineElementTemplate = $(templateHTML);
+            }
+            if (elem.TEngineDMObject == undefined) {
+                elem.TEngineDMObject = dataModelAccessor;
+            }
+
+            setTargetToSourceBinding(elem, dataModelAccessor);
+        }
+    }
+
+    function setTargetToSourceBinding(elem) {
+        var updateEvents = 'change';
+        if($(elem).attr("updateSourceEvents") != undefined)
+            updateEvents = $(elem).attr("updateSourceEvents");
+        if($(elem).attr("binding-mode") == "TwoWay") {
+            $(elem).off(updateEvents).on(updateEvents, function() {
+                var newValue = $(this).val();
+                elem.TEngineDMObject(newValue);
+            });
         }
     }
 
