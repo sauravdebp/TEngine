@@ -41,7 +41,21 @@ var data =
 };
 
 var dm = TEngine.createDataModel(data);
+
+for(var i = 0; i < data.Employees.length; i++) {
+    dm.Employees()[i]().updateEvents.EmpAge = onEmployeeAgeChanged;
+}
+
+function onEmployeeAgeChanged(employee) {
+    console.log("Ranking...");
+    var newRanking = data.Employees.sort(function (emp1, emp2) { return emp1.EmpAge < emp2.EmpAge });
+    dm.Employees(newRanking);
+}
+
 TEngine.bindDataModel(dm);
+
+data.WinningEmployee = data.Employees[0];
+dm.WinningEmployee(data.WinningEmployee);
 
 function Test1() {
     var newRanking = null;
@@ -70,7 +84,7 @@ function Test1() {
     dm.Employees(newRanking);
     dm.WinningEmployee(data.Employees[0]);
 
-    setTimeout(Test1, 3000);
+    setTimeout(Test1, 100);
 }
 
 // Test1();

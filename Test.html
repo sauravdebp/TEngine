@@ -1,39 +1,39 @@
 <html>
 <head>
     <link rel="stylesheet" href="style.css" />
-    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script src="jquery-3.2.1.min.js"></script>
     <script src="TemplateEngine.js"></script>
 </head>
 <body>
-    <div binding-path="Employees" class="employees-list">
-        <itemtemplate>
-            <div class="employee" binding-path>
-                <div class="employee-info">
-                    <div class="header">Name</div>
-                    <div class="value" binding-path="EmpName"></div>
-                </div>
-                <div class="employee-info">
-                    <div class="header">Age</div>
-                    <div class="value" binding-path="EmpAge"></div>
-                    <input type="text" binding-path="EmpAge" binding-mode="TwoWay" value="{binding-path}" />
-                </div>
-                <div class="employee-info">
-                    <div class="header">Dependants</div>
-                    <div class="value" binding-path="Dependants">
-                        <itemtemplate>
-                            <span class="dependant-value" binding-path></span>
-                        </itemtemplate>
-                    </div>
-                </div>
-                <div binding-path="Test">
-                    <span binding-path="EmpName"></span>
+    <itemtemplate key="EmployeeDetailsTemplate">
+        <div class="employee" binding-path>
+            <div class="employee-info">
+                <div class="header">Name</div>
+                <span class="value" binding-path="EmpName"></span> is <span binding-path="EmpAge"></span> years old
+            </div>
+            <div class="employee-info">
+                <div class="header">Age</div>
+                <div class="value" binding-path="EmpAge"></div>
+                <input type="text" binding-path="EmpAge" binding-mode="TwoWay" value="{binding-path}" />
+            </div>
+            <div class="employee-info">
+                <div class="header">Dependants</div>
+                <div class="value" binding-path="Dependants">
+                    <itemtemplate>
+                        <span class="dependant-value" binding-path></span>
+                    </itemtemplate>
                 </div>
             </div>
-        </itemtemplate>
-    </div>
+            <div binding-path="Test">
+                <span binding-path="EmpName"></span>
+            </div>
+        </div>
+    </itemtemplate>
 
-    <div binding-path="WinningEmployee">
-        Leading Employee: <binding binding-path="EmpName"></binding>
+    <div binding-path="Employees" template-key="EmployeeDetailsTemplate" class="employees-list"></div>
+
+    <div>
+        Leading Employee: <div binding-path="WinningEmployee" template-key="EmployeeDetailsTemplate"></div>
     </div>
     
     <div binding-path="TestArray">
