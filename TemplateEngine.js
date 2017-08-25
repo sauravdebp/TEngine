@@ -1,6 +1,24 @@
 var TEngine = function () {
-    function addArrayFeatures(TEngineDMobj) {
+    function addArrayFeatures(TEngineDMobj, dataArr) {
         TEngineDMobj["IsArray"] = true;
+        TEngineDMobj["sort"] = function(comparer) {
+            //TODO: Bubble sort is temporary. Implement better sorting.
+            for(var i = 0; i < this.length; i++) {
+                for(var j = 0; j < this.length - i - 1; j++) {
+                    if(comparer(this[j](), this[j + 1]())) {
+                        var temp = this[j];
+                        this[j] = this[j + 1];
+                        this[j + 1] = temp;
+
+                        temp = dataArr[j];
+                        dataArr[j] = dataArr[j + 1];
+                        dataArr[j + 1] = temp;
+                    }
+                }
+            }
+
+            bindDataModel(this, this.TEngineBindingContext);
+        }
     }
 
     function createDataModel(dataObj) {
@@ -21,7 +39,7 @@ var TEngine = function () {
                     var numObjectKeys = Object.keys(dataObj[objKey]).length;
                     dataObjVal["length"] = numObjectKeys;
                     if(Array.isArray(dataObj[objKey]))
-                        addArrayFeatures(dataObjVal);
+                        addArrayFeatures(dataObjVal, dataObj[objKey]);
                 }
 
                 return function (value) {
@@ -44,7 +62,7 @@ var TEngine = function () {
 
                         if (Array.isArray(dataObj[objKey])) {
                             $(">:not(itemtemplate)", dataObjVal.TEngineBindingContext).remove();
-                            addArrayFeatures(dataObjVal);
+                            addArrayFeatures(dataObjVal, dataObj[objKey]);
                         }
                         bindDataModel(dataObjVal, dataObjVal.TEngineBindingContext);
                     } else {
@@ -155,6 +173,8 @@ var TEngine = function () {
             if (elem.TEngineDMObject == undefined) {
                 elem.TEngineDMObject = dataModelAccessor;
             }
+            else if(elem.TEngineDMObject != dataModelAccessor)
+                elem.TEngineDMObject = dataModelAccessor;
 
             setTargetToSourceBinding(elem, dataModelAccessor);
         }
