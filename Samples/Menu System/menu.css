@@ -1,0 +1,46 @@
+.container
+{
+
+}
+
+.menu-bar
+{
+    display: inline-block;
+}
+
+.menu-item
+{
+    cursor: hand;
+    color: white;
+    padding: 10px 5px;
+    width: 200px;
+    position: relative;
+}
+
+.menu-item:hover
+{
+    background-color: #0f547f;;
+}
+
+.menu-item:hover>.sub-menu-items
+{
+    display: block;
+}
+
+.menu-item-name
+{
+
+}
+
+.sub-menu-items
+{
+    display: none;
+    position: absolute;
+    top: 0px;
+    left: 100%;
+}
+
+.menu-bar, .sub-menu-items
+{
+    background-color: #44a3dd;
+}

@@ -1,0 +1,27 @@
+<html>
+<head>
+    <script src="../../jquery-3.2.1.min.js"></script>
+    <script src="../../TemplateEngine.js"></script>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="container" binding-path="performanceData">
+    <itemtemplate>
+        <div class="performance-table" binding-path>
+            <div class="periodicity-header" binding-path="periodicity">
+                <b>{binding-path}</b>
+            </div>
+            <div class="market-sectors" binding-path="marketSectors">
+                <itemtemplate>
+                    <div class="market-sector" binding-path>
+                        <div class="market-sector-name" binding-path="marketSector"></div>
+                        <div class="market-sector-performance" binding-path="marketSectorPerformance"></div>
+                    </div>
+                </itemtemplate>
+            </div>
+        </div>
+    </itemtemplate>
+</div>
+<script src="main.js"></script>
+</body>
+</html>

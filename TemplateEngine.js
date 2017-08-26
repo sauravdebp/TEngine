@@ -17,14 +17,16 @@ var TEngine = function () {
                 }
             }
 
-            bindDataModel(this, this.TEngineBindingContext);
+            bindModel(this, this.TEngineBindingContext);
         }
     }
 
-    function createDataModel(dataObj) {
+    function createBindingModel(dataObj) {
         var TEngineDM = function () {};
         var tEngineObject = new TEngineDM();
 
+        if(dataObj == null || dataObj == undefined)
+            return null;
         var dataObjKeys = Object.keys(dataObj);
         for (var i = 0; i < dataObjKeys.length; i++) {
             var key = dataObjKeys[i];
@@ -35,9 +37,11 @@ var TEngine = function () {
                 tEngineObject.updateEvents = {};
 
                 if (typeof dataObjVal == typeof {}) {
-                    dataObjVal = createDataModel(dataObjVal);
-                    var numObjectKeys = Object.keys(dataObj[objKey]).length;
-                    dataObjVal["length"] = numObjectKeys;
+                    dataObjVal = createBindingModel(dataObjVal);
+                    if(dataObjVal != null) {
+                        var numObjectKeys = Object.keys(dataObj[objKey]).length;
+                        dataObjVal["length"] = numObjectKeys;
+                    }
                     if(Array.isArray(dataObj[objKey]))
                         addArrayFeatures(dataObjVal, dataObj[objKey]);
                 }
@@ -53,7 +57,9 @@ var TEngine = function () {
                         dataObj[objKey] = value;
                         var bindingContext = dataObjVal.TEngineBindingContext;
                         var updateEvents = dataObjVal.updateEvents;
-                        dataObjVal = createDataModel(value);
+                        dataObjVal = createBindingModel(value);
+                        if(dataObjVal == null)
+                            return;
                         dataObjVal["TEngineBindingContext"] = bindingContext;
                         dataObjVal["updateEvents"] = updateEvents;
 
@@ -64,10 +70,10 @@ var TEngine = function () {
                             $(">:not(itemtemplate)", dataObjVal.TEngineBindingContext).remove();
                             addArrayFeatures(dataObjVal, dataObj[objKey]);
                         }
-                        bindDataModel(dataObjVal, dataObjVal.TEngineBindingContext);
+                        bindModel(dataObjVal, dataObjVal.TEngineBindingContext);
                     } else {
                         dataObj[objKey] = value;
-                        bindValueToElems(getNextContextElem(objKey, tEngineObject.TEngineBindingContext), value);
+                        bindValueToElems(getNextContextElem(objKey, tEngineObject.TEngineBindingContext), value, tEngineObject[objKey]);
                     }
                     
                     if(tEngineObject.updateEvents[objKey] != undefined)
@@ -80,14 +86,18 @@ var TEngine = function () {
 
     function getNextContextElem(bindingPath, contextElem) {
         var possibleNextElems = $("[binding-path='" + bindingPath + "']", contextElem);
-        if (possibleNextElems.length <= 1)
-            return possibleNextElems;
+        //if (possibleNextElems.length <= 1)
+            //return possibleNextElems;
 
         var nextContextElems = [];
         for (var i = 0; i < possibleNextElems.length; i++) {
             var elem = possibleNextElems[i];
             var elemParents = $(elem).parents("[binding-path]");
-            if ($(elemParents[0]).attr("binding-path") == $(contextElem).attr("binding-path"))
+            if(elemParents.length == 0)
+                nextContextElems.push(elem);
+            // if ($(elemParents[0]).attr("binding-path") == $(contextElem).attr("binding-path"))
+            //     nextContextElems.push(elem);
+            else if ($(elemParents[0])[0] == $(contextElem)[0])
                 nextContextElems.push(elem);
         }
 
@@ -119,7 +129,7 @@ var TEngine = function () {
         return getNextContextElem(bindingPath, contextElem);
     }
 
-    function bindDataModel(dataModel, contextElem) {
+    function bindModel(dataModel, contextElem) {
         var dataModelKeys = Object.keys(dataModel.__proto__);
 
         for (var i = 0; i < dataModelKeys.length; i++) {
@@ -136,9 +146,9 @@ var TEngine = function () {
             if(nextContextElem.length == 0)
                 continue;
 
-            if (typeof dataModel[dmKey]() == typeof {}) {
+            if (typeof dataModel[dmKey]() == typeof {} && dataModel[dmKey]() != null) {
                 dataModel[dmKey]()["TEngineBindingContext"] = nextContextElem;
-                bindDataModel(dataModel[dmKey](), nextContextElem);
+                bindModel(dataModel[dmKey](), nextContextElem);
             } else {
                 bindValueToElems(nextContextElem, dataModel[dmKey](), dataModel[dmKey]);
             }
@@ -173,7 +183,7 @@ var TEngine = function () {
             if (elem.TEngineDMObject == undefined) {
                 elem.TEngineDMObject = dataModelAccessor;
             }
-            else if(elem.TEngineDMObject != dataModelAccessor)
+            else if(elem.TEngineDMObject != dataModelAccessor && dataModelAccessor != undefined)
                 elem.TEngineDMObject = dataModelAccessor;
 
             setTargetToSourceBinding(elem, dataModelAccessor);
@@ -193,12 +203,15 @@ var TEngine = function () {
     }
 
     return {
-        createDataModel: createDataModel,
-        bindDataModel: function (dataModel) {
+        init: function() {
+            $("itemtemplate").css('display', 'none');
+        },
+        createBindingModel: createBindingModel,
+        bindModel: function (dataModel) {
             //hide all templates
             $("itemtemplate").css('display', 'none');
 
-            bindDataModel(dataModel, $("body"));
+            bindModel(dataModel, $("body"));
         }
     }
 }();

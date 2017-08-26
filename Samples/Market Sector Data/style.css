@@ -1,0 +1,35 @@
+.container
+{
+
+}
+
+.performance-table
+{
+    width: 400px
+}
+
+.periodicity-header
+{
+
+}
+
+.market-sectors
+{
+
+}
+
+.market-sector
+{
+    display: flex;
+    justify-content: space-between;
+}
+
+.market-sector-name
+{
+
+}
+
+.market-sector-performance
+{
+    
+}
