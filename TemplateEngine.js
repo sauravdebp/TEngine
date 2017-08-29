@@ -165,10 +165,33 @@ var TEngine = function () {
                 templateHTML = outerHTML = $(elem.TEngineElementTemplate).prop("outerHTML");
             }
 
-            if (outerHTML.indexOf("{binding-path") == -1) {
+            if (outerHTML.indexOf("{binding-path}") == -1) {
                 $(elem).text(value);
             } else {
                 outerHTML = outerHTML.split("{binding-path}").join(value);
+                var elemParent = $(elem).parent();
+                $(elem).prop("outerHTML", $(outerHTML).attr("uniqueTempId", i).prop("outerHTML"));
+                var tEngineDmObjCopy = elem.TEngineDMObject;
+                elem = $("[uniqueTempId='" + i + "']", elemParent)[0];
+                elem.TEngineDMObject = tEngineDmObjCopy;
+                $(elem).removeAttr("uniqueTempId");
+            }
+
+            if($(outerHTML).attr("value-converter") != undefined) {
+                var valueConverterNS = $(outerHTML).attr("value-converter");
+                var regexp = new RegExp('{' + valueConverterNS + '\\.[a-zA-Z_]+\\(.+\\)}', 'gi');
+                
+                var ctr = 0;
+                var result;
+                var results = []; var expValues = [];
+                var regStr = outerHTML;
+                while ( (result = regexp.exec(regStr)) ) {
+                    var jsExp = result[0].substr(1, result[0].length - 2);
+                    var expVal = eval("TEngine." + jsExp);
+
+                    outerHTML = outerHTML.replace(result[0], expVal);
+                }
+
                 var elemParent = $(elem).parent();
                 $(elem).prop("outerHTML", $(outerHTML).attr("uniqueTempId", i).prop("outerHTML"));
                 var tEngineDmObjCopy = elem.TEngineDMObject;

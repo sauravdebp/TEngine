@@ -33,3 +33,8 @@
 {
     
 }
+
+.market-sector-performance.NegativePerf
+{
+    color: red;
+}

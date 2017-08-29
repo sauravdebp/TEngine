@@ -39,5 +39,13 @@ function dataReady(dataModel) {
 
 $(document).ready(function() {
     TEngine.init();
+    TEngine.converters = {
+        getPerformanceClass: function(performanceValue) {
+            var perf = parseFloat(performanceValue.replace("%", ""));
+            if(perf < 0)
+                return "NegativePerf";
+            return "PositivePerf";
+        }
+    }
     fetchMarketData();
 });

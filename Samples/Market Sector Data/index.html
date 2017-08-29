@@ -15,7 +15,8 @@
                 <itemtemplate>
                     <div class="market-sector" binding-path>
                         <div class="market-sector-name" binding-path="marketSector"></div>
-                        <div class="market-sector-performance" binding-path="marketSectorPerformance"></div>
+                        <div binding-path="marketSectorPerformance" value-converter="converters"
+                             class="market-sector-performance {converters.getPerformanceClass('{binding-path}')}">{binding-path}</div>
                     </div>
                 </itemtemplate>
             </div>
