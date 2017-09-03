@@ -156,6 +156,7 @@ var TEngine = function () {
     }
 
     function bindValueToElems(elems, value, dataModelAccessor) {
+        //TODO: Need refactoring
         for (var i = 0; i < $(elems).length; i++) {
             var elem = $(elems)[i];
             var outerHTML = $(elem).prop("outerHTML");
@@ -169,21 +170,14 @@ var TEngine = function () {
                 $(elem).text(value);
             } else {
                 outerHTML = outerHTML.split("{binding-path}").join(value);
-                var elemParent = $(elem).parent();
-                $(elem).prop("outerHTML", $(outerHTML).attr("uniqueTempId", i).prop("outerHTML"));
-                var tEngineDmObjCopy = elem.TEngineDMObject;
-                elem = $("[uniqueTempId='" + i + "']", elemParent)[0];
-                elem.TEngineDMObject = tEngineDmObjCopy;
-                $(elem).removeAttr("uniqueTempId");
+                elem = setElemBindedHTML(elem, outerHTML);
             }
 
             if($(outerHTML).attr("value-converter") != undefined) {
                 var valueConverterNS = $(outerHTML).attr("value-converter");
                 var regexp = new RegExp('{' + valueConverterNS + '\\.[a-zA-Z_]+\\(.+\\)}', 'gi');
                 
-                var ctr = 0;
                 var result;
-                var results = []; var expValues = [];
                 var regStr = outerHTML;
                 while ( (result = regexp.exec(regStr)) ) {
                     var jsExp = result[0].substr(1, result[0].length - 2);
@@ -192,12 +186,7 @@ var TEngine = function () {
                     outerHTML = outerHTML.replace(result[0], expVal);
                 }
 
-                var elemParent = $(elem).parent();
-                $(elem).prop("outerHTML", $(outerHTML).attr("uniqueTempId", i).prop("outerHTML"));
-                var tEngineDmObjCopy = elem.TEngineDMObject;
-                elem = $("[uniqueTempId='" + i + "']", elemParent)[0];
-                elem.TEngineDMObject = tEngineDmObjCopy;
-                $(elem).removeAttr("uniqueTempId");
+                elem = setElemBindedHTML(elem, outerHTML);
             }
 
             if (elem.TEngineElementTemplate == undefined) {
@@ -211,6 +200,18 @@ var TEngine = function () {
 
             setTargetToSourceBinding(elem, dataModelAccessor);
         }
+    }
+
+    function setElemBindedHTML(elem, html) {
+        var elemParent = $(elem).parent();
+        var uniqueId = Math.ceil(Math.random() * 1000);
+        $(elem).prop("outerHTML", $(html).attr("uniqueTempId", uniqueId).prop("outerHTML"));
+        var tEngineDmObjCopy = elem.TEngineDMObject;
+        elem = $("[uniqueTempId='" + uniqueId + "']", elemParent)[0];
+        elem.TEngineDMObject = tEngineDmObjCopy;
+        $(elem).removeAttr("uniqueTempId");
+
+        return elem;
     }
 
     function setTargetToSourceBinding(elem) {

@@ -45,6 +45,10 @@ $(document).ready(function() {
             if(perf < 0)
                 return "NegativePerf";
             return "PositivePerf";
+        },
+        massagePerformanceValue: function(performanceValue) {
+            var perf = parseFloat(performanceValue.replace("%", ""));
+            return (perf * 100) + "%";
         }
     }
     fetchMarketData();
