@@ -44,3 +44,7 @@ var menuStructure = {
 TEngine.init();
 var dm = TEngine.createBindingModel(menuStructure);
 TEngine.bindModel(dm);
+
+function customBinderFunction(tEngineObj, tEngineObjTarget) {
+    console.log("CLICKED");
+}

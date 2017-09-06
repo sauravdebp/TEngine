@@ -5,15 +5,15 @@
     <link rel="stylesheet" href="menu.css" />
 </head>
 <body>
-<div class="container">
-    <div class="menu-bar" binding-path="menuItems">
-        <itemtemplate key="menuTemplate">
-            <div class="menu-item" binding-path>
-                <div class="menu-item-name" binding-path="menuItem"></div>
-                <div class="sub-menu-items" binding-path="menuItems" template-key="menuTemplate"></div>
-            </div>
-        </itemtemplate>
+<itemtemplate key="menuTemplate">
+    <div class="menu-item" binding-path>
+        <div class="menu-item-name" binding-path="menuItem" binding-mode="OneWayToSource" updateSourceEvents="click"></div>
+        <div class="sub-menu-items" binding-path="menuItems" template-key="menuTemplate"></div>
     </div>
+</itemtemplate>
+<div class="container">
+    <div class="menu-bar" binding-path="menuItems" template-key="menuTemplate"></div>
+    <div class="menu-bar" binding-path="menuItems" template-key="menuTemplate"></div>
 </div>
 <script src="menu.js"></script>
 </body>

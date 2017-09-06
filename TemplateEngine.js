@@ -53,6 +53,11 @@ var TEngine = function () {
                         return dataObj[objKey];
                     }
 
+                    // if(customBinderFunction != undefined) {
+                    //     customBinderFunction(tEngineObject, dataObjVal);
+                    //     return;
+                    // }
+
                     if (typeof dataObjVal == typeof {}) {
                         dataObj[objKey] = value;
                         var bindingContext = dataObjVal.TEngineBindingContext;
@@ -86,19 +91,21 @@ var TEngine = function () {
 
     function getNextContextElem(bindingPath, contextElem) {
         var possibleNextElems = $("[binding-path='" + bindingPath + "']", contextElem);
-        //if (possibleNextElems.length <= 1)
-            //return possibleNextElems;
 
         var nextContextElems = [];
         for (var i = 0; i < possibleNextElems.length; i++) {
             var elem = possibleNextElems[i];
             var elemParents = $(elem).parents("[binding-path]");
-            if(elemParents.length == 0)
+            if(
+                elemParents.length == 0 ||
+                elemParents[0] == contextElem ||
+                (Array.isArray(contextElem) && contextElem.indexOf(elemParents[0]) != -1)
+            )
                 nextContextElems.push(elem);
-            // if ($(elemParents[0]).attr("binding-path") == $(contextElem).attr("binding-path"))
+            // else if (elemParents[0] == contextElem)
             //     nextContextElems.push(elem);
-            else if ($(elemParents[0])[0] == $(contextElem)[0])
-                nextContextElems.push(elem);
+            // else if(Array.isArray(contextElem) && contextElem.indexOf(elemParents[0]) != -1)
+            //     nextContextElems.push(elem);
         }
 
         return nextContextElems;
@@ -156,7 +163,6 @@ var TEngine = function () {
     }
 
     function bindValueToElems(elems, value, dataModelAccessor) {
-        //TODO: Need refactoring
         for (var i = 0; i < $(elems).length; i++) {
             var elem = $(elems)[i];
             var outerHTML = $(elem).prop("outerHTML");
@@ -215,10 +221,12 @@ var TEngine = function () {
     }
 
     function setTargetToSourceBinding(elem) {
-        var updateEvents = 'change';
-        if($(elem).attr("updateSourceEvents") != undefined)
-            updateEvents = $(elem).attr("updateSourceEvents");
-        if($(elem).attr("binding-mode") == "TwoWay") {
+        var bindingMode = $(elem).attr("binding-mode");
+        if(bindingMode == "TwoWay" || bindingMode == "OneWayToSource") {
+            var updateEvents = 'change';
+            if($(elem).attr("updateSourceEvents") != undefined)
+                updateEvents = $(elem).attr("updateSourceEvents");
+
             $(elem).off(updateEvents).on(updateEvents, function() {
                 var newValue = $(this).val();
                 elem.TEngineDMObject(newValue);
