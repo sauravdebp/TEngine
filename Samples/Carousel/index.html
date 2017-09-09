@@ -1,0 +1,16 @@
+<html>
+<head>
+    <script src="../../jquery-3.2.1.min.js"></script>
+    <script src="../../TemplateEngine.js"></script>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<script type="text/html" src="components/carousel.html" template-alias="carousel" load-on-demand="true"></script>
+
+<div class="container" binding-path="carousels">
+    <div binding-path="carousel1" template-key="carousel"></div>
+    <!-- <div binding-path="carousel2" template-key="carousel"></div> -->
+</div>
+<script src="main.js"></script>
+</body>
+</html>

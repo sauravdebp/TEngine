@@ -53,11 +53,6 @@ var TEngine = function () {
                         return dataObj[objKey];
                     }
 
-                    // if(customBinderFunction != undefined) {
-                    //     customBinderFunction(tEngineObject, dataObjVal);
-                    //     return;
-                    // }
-
                     if (typeof dataObjVal == typeof {}) {
                         dataObj[objKey] = value;
                         var bindingContext = dataObjVal.TEngineBindingContext;
@@ -96,16 +91,11 @@ var TEngine = function () {
         for (var i = 0; i < possibleNextElems.length; i++) {
             var elem = possibleNextElems[i];
             var elemParents = $(elem).parents("[binding-path]");
-            if(
+            if (
                 elemParents.length == 0 ||
                 elemParents[0] == contextElem ||
                 (Array.isArray(contextElem) && contextElem.indexOf(elemParents[0]) != -1)
-            )
-                nextContextElems.push(elem);
-            // else if (elemParents[0] == contextElem)
-            //     nextContextElems.push(elem);
-            // else if(Array.isArray(contextElem) && contextElem.indexOf(elemParents[0]) != -1)
-            //     nextContextElems.push(elem);
+            ) nextContextElems.push(elem);
         }
 
         return nextContextElems;
@@ -226,10 +216,47 @@ var TEngine = function () {
             var updateEvents = 'change';
             if($(elem).attr("updateSourceEvents") != undefined)
                 updateEvents = $(elem).attr("updateSourceEvents");
+            var sourceBindingHandler = getSourceBindingHandler(elem);
 
-            $(elem).off(updateEvents).on(updateEvents, function() {
-                var newValue = $(this).val();
-                elem.TEngineDMObject(newValue);
+            $(elem).off(updateEvents).on(updateEvents, sourceBindingHandler);
+        }
+    }
+
+    function getSourceBindingHandler(elem) {
+        var sourceBindingHandler = function() {
+            var newValue = $(this).val();
+            elem.TEngineDMObject(newValue);
+        }
+
+        var customSourceBindingHandler = $(elem).attr("sourceBindingHandler");
+        if(customSourceBindingHandler != null && customSourceBindingHandler != undefined) {
+            sourceBindingHandler = function() {
+                var tEngineObj = elem.TEngineDMObject;
+                eval(customSourceBindingHandler + "(tEngineObj);");
+            }
+        }
+
+        return sourceBindingHandler;
+    }
+
+    function importTemplates(context, onImportComplete) {
+        var templates = $("script[template-alias]", context);
+        for(var i = 0; i < templates.length; i++) {
+            var template = templates[i];
+            var templateAlias = $(template).attr("template-alias");
+            var templateSrc = $(template).attr("src");
+            
+            $.ajax({
+                async: false,
+                url: templateSrc,
+                success: function(data, textStatus, jqXHR) {
+                    var templateContainer = $("<itemtemplate>").attr("key", templateAlias);
+                    $(templateContainer).html(data);
+                    $(context).append(templateContainer);
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log(textStatus + "||" + errorThrown);
+                }
             });
         }
     }
@@ -237,6 +264,7 @@ var TEngine = function () {
     return {
         init: function() {
             $("itemtemplate").css('display', 'none');
+            importTemplates($("body"));
         },
         createBindingModel: createBindingModel,
         bindModel: function (dataModel) {

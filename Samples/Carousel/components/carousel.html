@@ -1,0 +1,15 @@
+<div class="carousel" binding-path>
+    <div class="display-image" binding-path="selectedImage">
+        <image binding-path="imgSrc" src="images/{binding-path}" />
+    </div>
+    <div class="image-thumbnails" binding-path="carouselImages">
+        <itemtemplate>
+            <div class="thumbnail" 
+                    binding-path 
+                    binding-mode="OneWayToSource" updateSourceEvents="click" 
+                    sourceBindingHandler="selectThumbnail">
+                <image binding-path="imgSrc" src="images/{binding-path}" />
+            </div>
+        </itemtemplate>
+    </div>
+</div>

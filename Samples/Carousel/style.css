@@ -1,0 +1,58 @@
+body {
+    /* background: black; */
+}
+
+.container {
+}
+
+.carousel {
+    position: relative;
+    height: 90vh;
+    width: 80vw;
+    margin: auto;
+    display: flex;
+    justify-content: center;
+    border: 1px solid black;
+}
+
+.display-image {
+    height: inherit;
+}
+
+.display-image img {
+    height: inherit;
+}
+
+.image-thumbnails {
+    display: flex;
+    position: absolute;
+    bottom: 0;
+    width: inherit;
+}
+
+.image-thumbnails::-webkit-scrollbar {
+    display: none;
+}
+
+.image-thumbnails:hover .thumbnail {
+    opacity: 1;
+}
+
+.thumbnail {
+    margin-right: 5px;
+    cursor: hand;
+    opacity: 0;
+}
+
+.thumbnail:hover {
+    transform: scaleX(1.2) scaleY(1.2);
+    box-shadow: 0px 0px 10px 1px #000000;
+}
+
+.thumbnail:last-child {
+    margin-right: 0px;
+}
+
+.thumbnail img {
+    width: 100px;
+}

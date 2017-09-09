@@ -5,7 +5,9 @@
 
 .menu-bar
 {
-    display: inline-block;
+    display: block;
+    width: 200px;
+    margin-bottom: 144px;
 }
 
 .menu-item
@@ -13,7 +15,8 @@
     cursor: hand;
     color: white;
     padding: 10px 5px;
-    width: 200px;
+    width: inherit;
+    box-sizing: border-box;
     position: relative;
 }
 
@@ -38,6 +41,7 @@
     position: absolute;
     top: 0px;
     left: 100%;
+    width: inherit;
 }
 
 .menu-bar, .sub-menu-items
