@@ -24,6 +24,7 @@ var TEngine = function () {
     function createBindingModel(dataObj) {
         var TEngineDM = function () {};
         var tEngineObject = new TEngineDM();
+        tEngineObject.isTEngineDM = true;   //To allow *duck-typing* of TEngineBM objects.
 
         if(dataObj == null || dataObj == undefined)
             return null;
@@ -41,6 +42,7 @@ var TEngine = function () {
                     if(dataObjVal != null) {
                         var numObjectKeys = Object.keys(dataObj[objKey]).length;
                         dataObjVal["length"] = numObjectKeys;
+                        dataObjVal["underlyingObject"] = dataObj[objKey];
                     }
                     if(Array.isArray(dataObj[objKey]))
                         addArrayFeatures(dataObjVal, dataObj[objKey]);
@@ -52,8 +54,12 @@ var TEngine = function () {
                             return dataObjVal;
                         return dataObj[objKey];
                     }
-
-                    if (typeof dataObjVal == typeof {}) {
+                    
+                    if(value.isTEngineDM) {
+                        value = value.underlyingObject;
+                        //bindModel(value, dataObjVal.TEngineBindingContext);
+                    }
+                    if (dataObjVal.isTEngineDM) {
                         dataObj[objKey] = value;
                         var bindingContext = dataObjVal.TEngineBindingContext;
                         var updateEvents = dataObjVal.updateEvents;
@@ -65,6 +71,7 @@ var TEngine = function () {
 
                         var numObjectKeys = Object.keys(dataObj[objKey]).length;
                         dataObjVal["length"] = numObjectKeys;
+                        dataObjVal["underlyingObject"] = dataObj[objKey];
 
                         if (Array.isArray(dataObj[objKey])) {
                             $(">:not(itemtemplate)", dataObjVal.TEngineBindingContext).remove();
@@ -126,6 +133,8 @@ var TEngine = function () {
         return getNextContextElem(bindingPath, contextElem);
     }
 
+    var bindingAliasMaps = {};
+
     function bindModel(dataModel, contextElem) {
         var dataModelKeys = Object.keys(dataModel.__proto__);
 
@@ -143,46 +152,90 @@ var TEngine = function () {
             if(nextContextElem.length == 0)
                 continue;
 
+            var bindingAlias = checkForBindingAliasDecl(nextContextElem);
+
             if (typeof dataModel[dmKey]() == typeof {} && dataModel[dmKey]() != null) {
+                //setTargetToSourceBinding(nextContextElem, dataModel[dmKey]());
                 dataModel[dmKey]()["TEngineBindingContext"] = nextContextElem;
                 bindModel(dataModel[dmKey](), nextContextElem);
-            } else {
                 bindValueToElems(nextContextElem, dataModel[dmKey](), dataModel[dmKey]);
             }
+            else {
+                nextContextElem = bindValueToElems(nextContextElem, dataModel[dmKey](), dataModel[dmKey]);
+                if(bindingAlias != undefined) {
+                    bindingAliasMaps[bindingAlias][bindingAliasMaps[bindingAlias].length - 1] = nextContextElem;
+                }
+            }
+
+            if(bindingAlias != undefined && i == dataModelKeys.length - 1) {
+                removeBindingAliasScope(nextContextElem);
+            }
+        }
+    }
+
+    function checkForBindingAliasDecl(elem) {
+        //TODO: error handling for ambiguous alias declarations
+
+        var bindingAlias = $(elem).attr("binding-alias");
+        if(bindingAlias != undefined && bindingAlias != "") {
+            if(bindingAliasMaps[bindingAlias] == undefined)
+                bindingAliasMaps[bindingAlias] = [];
+            bindingAliasMaps[bindingAlias].push(elem);
+
+            return bindingAlias;
+        }
+        
+        if (bindingAlias == "") bindingAlias = undefined;
+        
+        return bindingAlias;
+    }
+
+    function removeBindingAliasScope(elem) {
+        var bindingAlias = $(elem).attr("binding-alias");
+        if (
+            bindingAlias != undefined && bindingAlias != "" && 
+            bindingAliasMaps[bindingAlias] != undefined && bindingAliasMaps[bindingAlias].length > 1
+        ) {
+            bindingAliasMaps[bindingAlias].pop();
         }
     }
 
     function bindValueToElems(elems, value, dataModelAccessor) {
         for (var i = 0; i < $(elems).length; i++) {
             var elem = $(elems)[i];
-            var outerHTML = $(elem).prop("outerHTML");
-            var templateHTML = $(elem).prop("outerHTML");
 
-            if (elem.TEngineElementTemplate != undefined){
-                templateHTML = outerHTML = $(elem.TEngineElementTemplate).prop("outerHTML");
-            }
+            if(typeof value != typeof {}) {
+                var outerHTML = $(elem).prop("outerHTML");
+                var templateHTML = $(elem).prop("outerHTML");
 
-            if (outerHTML.indexOf("{binding-path}") == -1) {
-                $(elem).text(value);
-            } else {
-                outerHTML = outerHTML.split("{binding-path}").join(value);
-                elem = setElemBindedHTML(elem, outerHTML);
-            }
-
-            if($(outerHTML).attr("value-converter") != undefined) {
-                var valueConverterNS = $(outerHTML).attr("value-converter");
-                var regexp = new RegExp('{' + valueConverterNS + '\\.[a-zA-Z_]+\\(.+\\)}', 'gi');
-                
-                var result;
-                var regStr = outerHTML;
-                while ( (result = regexp.exec(regStr)) ) {
-                    var jsExp = result[0].substr(1, result[0].length - 2);
-                    var expVal = eval("TEngine." + jsExp);
-
-                    outerHTML = outerHTML.replace(result[0], expVal);
+                if (elem.TEngineElementTemplate != undefined){
+                    templateHTML = outerHTML = $(elem.TEngineElementTemplate).prop("outerHTML");
                 }
 
-                elem = setElemBindedHTML(elem, outerHTML);
+                if (outerHTML.indexOf("{binding-path}") == -1) {
+                    $(elem).text(value);
+                } else {
+                    outerHTML = outerHTML.split("{binding-path}").join(value);
+                    elem = setElemBindedHTML(elem, outerHTML);
+                    elems[i] = elem;
+                }
+
+                if($(outerHTML).attr("value-converter") != undefined) {
+                    var valueConverterNS = $(outerHTML).attr("value-converter");
+                    var regexp = new RegExp('{' + valueConverterNS + '\\.[a-zA-Z_]+\\(.+\\)}', 'gi');
+                    
+                    var result;
+                    var regStr = outerHTML;
+                    while ( (result = regexp.exec(regStr)) ) {
+                        var jsExp = result[0].substr(1, result[0].length - 2);
+                        var expVal = eval("TEngine." + jsExp);
+
+                        outerHTML = outerHTML.replace(result[0], expVal);
+                    }
+
+                    elem = setElemBindedHTML(elem, outerHTML);
+                    elems[i] = elem;
+                }
             }
 
             if (elem.TEngineElementTemplate == undefined) {
@@ -196,6 +249,8 @@ var TEngine = function () {
 
             setTargetToSourceBinding(elem, dataModelAccessor);
         }
+
+        return elems;
     }
 
     function setElemBindedHTML(elem, html) {
@@ -213,12 +268,12 @@ var TEngine = function () {
     function setTargetToSourceBinding(elem) {
         var bindingMode = $(elem).attr("binding-mode");
         if(bindingMode == "TwoWay" || bindingMode == "OneWayToSource") {
-            var updateEvents = 'change';
+            var updateSourceTriggers = 'change';
             if($(elem).attr("updateSourceEvents") != undefined)
-                updateEvents = $(elem).attr("updateSourceEvents");
+                updateSourceTriggers = $(elem).attr("updateSourceEvents");
             var sourceBindingHandler = getSourceBindingHandler(elem);
 
-            $(elem).off(updateEvents).on(updateEvents, sourceBindingHandler);
+            $(elem).off(updateSourceTriggers).on(updateSourceTriggers, sourceBindingHandler);
         }
     }
 
@@ -228,8 +283,19 @@ var TEngine = function () {
             elem.TEngineDMObject(newValue);
         }
 
+        var sourceBindingModifier = $(elem).attr("source-binding-modifier");
+        if(sourceBindingModifier != undefined && sourceBindingModifier != "") {
+            var bindingAliasDeclElems = bindingAliasMaps[sourceBindingModifier];
+            var sourceElem = bindingAliasDeclElems[bindingAliasDeclElems.length - 1];
+
+            sourceBindingHandler = function() {
+                var newValue = $(this)[0].TEngineDMObject();
+                $(sourceElem)[0].TEngineDMObject(newValue);
+            }
+        }
+
         var customSourceBindingHandler = $(elem).attr("sourceBindingHandler");
-        if(customSourceBindingHandler != null && customSourceBindingHandler != undefined) {
+        if(customSourceBindingHandler != undefined && customSourceBindingHandler != "") {
             sourceBindingHandler = function() {
                 var tEngineObj = elem.TEngineDMObject;
                 eval(customSourceBindingHandler + "(tEngineObj);");
@@ -246,6 +312,7 @@ var TEngine = function () {
             var templateAlias = $(template).attr("template-alias");
             var templateSrc = $(template).attr("src");
             
+            //TODO: needs to be async
             $.ajax({
                 async: false,
                 url: templateSrc,
