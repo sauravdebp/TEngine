@@ -55,10 +55,9 @@ var TEngine = function () {
                         return dataObj[objKey];
                     }
                     
-                    if(value.isTEngineDM) {
+                    if(value.isTEngineDM)
                         value = value.underlyingObject;
-                        //bindModel(value, dataObjVal.TEngineBindingContext);
-                    }
+
                     if (dataObjVal.isTEngineDM) {
                         dataObj[objKey] = value;
                         var bindingContext = dataObjVal.TEngineBindingContext;
@@ -152,15 +151,16 @@ var TEngine = function () {
             if(nextContextElem.length == 0)
                 continue;
 
+            
+
             var bindingAlias = checkForBindingAliasDecl(nextContextElem);
 
-            if (typeof dataModel[dmKey]() == typeof {} && dataModel[dmKey]() != null) {
-                //setTargetToSourceBinding(nextContextElem, dataModel[dmKey]());
+            if (typeof dataModel[dmKey]() == typeof {} && dataModel[dmKey]() != null) { //Traverse further into the DOM.
                 dataModel[dmKey]()["TEngineBindingContext"] = nextContextElem;
                 bindModel(dataModel[dmKey](), nextContextElem);
                 bindValueToElems(nextContextElem, dataModel[dmKey](), dataModel[dmKey]);
             }
-            else {
+            else {  //In this case we have an actual value that can be binded onto a DOM node.
                 nextContextElem = bindValueToElems(nextContextElem, dataModel[dmKey](), dataModel[dmKey]);
                 if(bindingAlias != undefined) {
                     bindingAliasMaps[bindingAlias][bindingAliasMaps[bindingAlias].length - 1] = nextContextElem;

@@ -1,11 +1,11 @@
 <div class="carousel" binding-path>
-    <div class="display-image" binding-path="selectedImage" binding-alias="selectedImage">
+    <div class="display-image" binding-path="selectedImage" binding-alias="displayedImage">
         <image binding-path="imgSrc" src="images/{binding-path}" />
     </div>
     <div class="image-thumbnails" binding-path="carouselImages">
         <itemtemplate>
-            <div class="thumbnail" binding-path binding-mode="TwoWay" source-binding-modifier="selectedImage" 
-                 updateSourceEvents="mouseover">
+            <div class="thumbnail" binding-path binding-mode="TwoWay" source-binding-modifier="displayedImage" 
+                 updateSourceEvents="click">
                  <image binding-path="imgSrc" src="images/{binding-path}" />
             </div>
         </itemtemplate>
