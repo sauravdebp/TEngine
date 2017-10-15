@@ -132,42 +132,77 @@ var TEngine = function () {
         return getNextContextElem(bindingPath, contextElem);
     }
 
+    function resolveMissingTemplate(contextElem, isTemplateForArray) {
+        var itemTemplateKey = $(contextElem).attr('template-key');
+        if (itemTemplateKey == null || itemTemplateKey == undefined)
+            return;
+        if (isTemplateForArray)
+            return;
+
+        var itemTemplateElem = $("itemtemplate[key='" + itemTemplateKey + "']");
+        if (itemTemplateElem.length == 0)
+            return;
+        $(contextElem).removeAttr('template-key');
+        var itemTemplate = $($(itemTemplateElem).html());
+        if ($(itemTemplate).attr("binding-path") != undefined) {
+            $(itemTemplate).removeAttr("binding-path");
+        }
+        else {
+            $("[binding-path='']", itemTemplate).first().removeAttr("binding-path");
+        }
+
+        $(contextElem).append(itemTemplate);
+    }
+
+    function orderBMKeysByDOMOrder(contextElem, BMKeys) {
+        if(BMKeys.length <= 1)
+            return BMKeys;
+
+        var selectors = [];
+        BMKeys.forEach(function(item, key) { selectors[key] = "[binding-path='" + item + "']"; });
+        var orderedBMKeys = [];
+        $(selectors.join(","), contextElem).each(function(key, item) { orderedBMKeys.push($(item).attr("binding-path")); });
+        return orderedBMKeys;
+    }
+
     var bindingAliasMaps = {};
 
-    function bindModel(dataModel, contextElem) {
-        var dataModelKeys = Object.keys(dataModel.__proto__);
+    function bindModel(bindingModel, contextElem) {
+        var bindingModelKeys = Object.keys(bindingModel.__proto__);
 
-        for (var i = 0; i < dataModelKeys.length; i++) {
-            var dmKey = dataModelKeys[i];
+        resolveMissingTemplate(contextElem, bindingModel.IsArray);
+        if (!bindingModel.IsArray)
+            bindingModelKeys = orderBMKeysByDOMOrder(contextElem, bindingModelKeys);
+
+        for (var i = 0; i < bindingModelKeys.length; i++) {
+            var dmKey = bindingModelKeys[i];
 
             var nextContextElem = getNextContextElem(dmKey, contextElem);
             if ($(contextElem).attr("binding-path") != undefined &&
                 ($(nextContextElem).length == 0 ||
                 $(nextContextElem).parents("[binding-path]").first().attr("binding-path") != $(contextElem).attr("binding-path"))
             ) {
-                nextContextElem = getItemTemplate(dmKey, contextElem, dataModel.IsArray);
+                nextContextElem = getItemTemplate(dmKey, contextElem, bindingModel.IsArray);
             }
 
             if(nextContextElem.length == 0)
                 continue;
 
-            
-
             var bindingAlias = checkForBindingAliasDecl(nextContextElem);
 
-            if (typeof dataModel[dmKey]() == typeof {} && dataModel[dmKey]() != null) { //Traverse further into the DOM.
-                dataModel[dmKey]()["TEngineBindingContext"] = nextContextElem;
-                bindModel(dataModel[dmKey](), nextContextElem);
-                bindValueToElems(nextContextElem, dataModel[dmKey](), dataModel[dmKey]);
+            if (typeof bindingModel[dmKey]() == typeof {} && bindingModel[dmKey]() != null) { //Traverse further into the DOM.
+                bindingModel[dmKey]()["TEngineBindingContext"] = nextContextElem;
+                bindModel(bindingModel[dmKey](), nextContextElem);
+                bindValueToElems(nextContextElem, bindingModel[dmKey](), bindingModel[dmKey]);
             }
             else {  //In this case we have an actual value that can be binded onto a DOM node.
-                nextContextElem = bindValueToElems(nextContextElem, dataModel[dmKey](), dataModel[dmKey]);
+                nextContextElem = bindValueToElems(nextContextElem, bindingModel[dmKey](), bindingModel[dmKey]);
                 if(bindingAlias != undefined) {
                     bindingAliasMaps[bindingAlias][bindingAliasMaps[bindingAlias].length - 1] = nextContextElem;
                 }
             }
 
-            if(bindingAlias != undefined && i == dataModelKeys.length - 1) {
+            if(bindingAlias != undefined && i == bindingModelKeys.length - 1) {
                 removeBindingAliasScope(nextContextElem);
             }
         }
